@@ -13,7 +13,17 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
+            $table->string('nom');
+            $table->String('type');
+            $table->bigInteger('taille');
+            $table->string('chemin');
+            $table->foreignId('dossier_id')->constrained('dossiers')->onDelete('cascade');
+            $table->foreignId('uploaded_by')->constrained('users')->onDelete('cascade');
+            $table->boolean('is_encrypted')->default(false);
             $table->timestamps();
+
+            $table->index(['dossier_id', 'created_at']);
+            $table->index('type');
         });
     }
 
