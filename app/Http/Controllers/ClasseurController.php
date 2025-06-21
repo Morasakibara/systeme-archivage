@@ -6,59 +6,82 @@ use Illuminate\Http\Request;
 
 class ClasseurController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+     public function __construct()
     {
-        //
+        $this->middleware('auth:sanctum');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function index(Request $request)
     {
-        //
+        $query = Classeur::with('creator');
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nom', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $classeurs = $query->withCount('dossiers')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        return response()->json($classeurs);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nom' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $classeur = Classeur::create([
+            'nom' => $request->nom,
+            'description' => $request->description,
+            'created_by' => $request->user()->id,
+        ]);
+
+        return response()->json($classeur->load('creator'), 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Classeur $classeur)
     {
-        //
+        return response()->json($classeur->load([
+            'creator',
+            'dossiers.entreprise',
+            'dossiers.assignedUser'
+        ]));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(Request $request, Classeur $classeur)
     {
-        //
+        $this->authorize('update', $classeur);
+
+        $request->validate([
+            'nom' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $classeur->update($request->only(['nom', 'description']));
+
+        return response()->json($classeur);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Classeur $classeur)
     {
-        //
+        $this->authorize('delete', $classeur);
+
+        if ($classeur->dossiers()->count() > 0) {
+            return response()->json([
+                'message' => 'Impossible de supprimer un classeur contenant des dossiers'
+            ], 422);
+        }
+
+        $classeur->delete();
+
+        return response()->json(['message' => 'Classeur supprimé avec succès']);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 }
