@@ -13,7 +13,16 @@ return new class extends Migration
     {
         Schema::create('historique_action', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('dossier_id')->constrained('dossiers')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('action'); // e.g., 'create', 'update', 'delete'
+            $table->text('description')->nullable(); // Optional description of the action
             $table->timestamps();
+
+            // Indexes for performance
+            $table->index(['dossier_id', 'created_at']);
+            $table->index(['user_id', 'created_at']);
+            $table->index('action');
         });
     }
 

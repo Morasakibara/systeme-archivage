@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('classeurs', function (Blueprint $table) {
             $table->id();
+            $table->string('nom');
+            $table->text('description')->nullable();
+            $table->foreignId('entreprise_id')->constrained('entreprises')->onDelete('cascade');
             $table->timestamps();
         });
     }
