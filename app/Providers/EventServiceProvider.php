@@ -1,18 +1,20 @@
 <?php
+// app/Providers/EventServiceProvider.php - Mise à jour
 
 namespace App\Providers;
 
+use App\Models\Dossier;
+use App\Models\Document;
+use App\Observers\DossierObserver;
+use App\Observers\DocumentObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
 
 class EventServiceProvider extends ServiceProvider
 {
     /**
      * The event to listener mappings for the application.
-     *
-     * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
         Registered::class => [
@@ -25,7 +27,8 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Dossier::observe(DossierObserver::class);
+        Document::observe(DocumentObserver::class);
     }
 
     /**
