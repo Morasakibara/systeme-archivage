@@ -34,3 +34,4 @@ class UpdateDossierRequest extends FormRequest
         ];
     }
 }
+
