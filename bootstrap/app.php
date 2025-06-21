@@ -51,5 +51,31 @@ $app->singleton(
 | from the actual running of the application and sending responses.
 |
 */
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        // Middlewares globaux
+        $middleware->append(\App\Http\Middleware\SecureHeaders::class);
+
+        // Middlewares de groupe
+        $middleware->appendToGroup('web', [
+            \App\Http\Middleware\CheckActiveUser::class,
+            \App\Http\Middleware\LogActivity::class,
+        ]);
+
+        // Alias des middlewares
+        $middleware->alias([
+            'role' => \App\Http\Middleware\CheckRole::class,
+            'active' => \App\Http\Middleware\CheckActiveUser::class,
+            'log.activity' => \App\Http\Middleware\LogActivity::class,
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
 
 return $app;
