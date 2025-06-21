@@ -2,63 +2,78 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Entreprise;
 use Illuminate\Http\Request;
 
 class EntrepriseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct()
     {
-        //
+        $this->middleware('auth:sanctum');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function index(Request $request)
     {
-        //
+        $query = Entreprise::query();
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nom', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $entreprises = $query->withCount('dossiers')
+            ->orderBy('nom')
+            ->paginate(15);
+
+        return response()->json($entreprises);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nom' => 'required|string|max:255',
+            'adresse' => 'required|string',
+            'telephone' => 'required|string|max:20',
+            'email' => 'required|string|email|max:255',
+        ]);
+
+        $entreprise = Entreprise::create($request->validated());
+
+        return response()->json($entreprise, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Entreprise $entreprise)
     {
-        //
+        return response()->json($entreprise->load('dossiers.classeur'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(Request $request, Entreprise $entreprise)
     {
-        //
+        $request->validate([
+            'nom' => 'sometimes|required|string|max:255',
+            'adresse' => 'sometimes|required|string',
+            'telephone' => 'sometimes|required|string|max:20',
+            'email' => 'sometimes|required|string|email|max:255',
+        ]);
+
+        $entreprise->update($request->validated());
+
+        return response()->json($entreprise);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Entreprise $entreprise)
     {
-        //
-    }
+        if ($entreprise->dossiers()->count() > 0) {
+            return response()->json([
+                'message' => 'Impossible de supprimer une entreprise ayant des dossiers'
+            ], 422);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $entreprise->delete();
+
+        return response()->json(['message' => 'Entreprise supprimée avec succès']);
     }
 }
