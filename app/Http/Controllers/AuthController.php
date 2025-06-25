@@ -34,6 +34,10 @@ class AuthController extends Controller
             'message' => 'Connexion réussie'
         ]);
     }
+    public function showLogin()
+    {
+        return view('login\login');
+    }
 
     public function register(Request $request)
     {
