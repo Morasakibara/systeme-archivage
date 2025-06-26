@@ -1,6 +1,4 @@
-@push ('name')
-
-@endpush<?php
+<?php
 
 namespace App\Http\Middleware;
 
