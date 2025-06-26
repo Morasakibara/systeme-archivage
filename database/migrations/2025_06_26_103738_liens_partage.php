@@ -18,7 +18,7 @@ return new class extends Migration
             $table->bigInteger('resource_id');
             $table->json('permissions');
             $table->timestamp('expires_at')->nullable();
-            $table->bigInteger('created_by');
+            $table->unsignedBigInteger('created_by');
             $table->integer('access_count')->default(0);
             $table->timestamps();
 

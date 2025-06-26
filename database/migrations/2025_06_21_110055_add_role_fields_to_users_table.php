@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('nom')->after('name');
             $table->string('prenom')->after('nom');
             $table->enum('role',['PDG','SECRETAIRE','EMPLOYE'])->default('EMPLOYE')->after('prenom');
-            $table->dropColum('name');
+
         });
     }
 
@@ -27,6 +27,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('name')->after('id');
             $table->dropColum(['nom','prenom','role']);
+            $table->dropColum('name');
         });
     }
 };
